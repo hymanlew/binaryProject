@@ -19,7 +19,9 @@ import java.util.concurrent.Executors;
  * 执行该程序的用户需要和目标进程具有相同的权限。比如以admin用户来执行：sudo su admin && java -jar arthas-boot.jar 或 sudo -u
  * admin -EH java -jar arthas-boot.jar。
  * 如果attach不上目标进程，可以查看~/logs/arthas/ 目录下的日志。
- * 使用 shutdown 退出时，Arthas 会自动重置所有增强过的类 。
+ *
+ * 如果只是退出当前的连接，可以用 quit 或 exit 命令。Attach到目标进程上的arthas还会继续运行，端口会保持开放，下次连接时可以直接连接上。如果想完全退出arthas，
+ * 可以执行stop/shutdown命令。并且，Arthas 会自动重置所有增强过的类 。
  *
  * 查看运行的 java 进程信息，可使用 ps 或 jps 两种方式：jps -mlvV。筛选 java 进程信息：jps -mlvV | grep xxx。
  *
@@ -49,15 +51,19 @@ import java.util.concurrent.Executors;
  * thread 线程ID 命令，可以看到指定线程的信息，并且会输出 CPU 使用较高的方法和行数。
  * thread -b（找出当前阻塞其他线程的线程，死锁，直接定位到死锁信息），但目前只支持 synchronized 关键字阻塞住的线程，不支持 lock。
  *
- * jad 命令还提供了一些其他参数：
- * 反编译只显示源码，jad --source-only classFullName。反编译某个类的某个方法，jad --source-only classFullName methodName。
- *
  * 先回顾一下线程的几种常见状态：
  * 1，RUNNABLE 运行中。
  * 2，TIMED_WAITIN 进入该状态调用的方法：Thread.sleep()，Object.wait() 并加了超时参数，Thread.join() 并加了超时参数。LockSupport.parkNanos()，LockSupport.parkUntil()。
  * 3，WAITING 进入该状态调用的方法：Object.wait() 而且不加超时参数，Thread.join() 而且不加超时参数，LockSupport.park()。
  * 4，BLOCKED 阻塞，等待锁。
  * 使用 thread | grep pool 命令查看线程池里线程信息。
+ *
+ * jad 命令还提供了一些其他参数：
+ * 反编译只显示源码，jad --source-only classFullName。反编译某个类的某个方法，jad --source-only classFullName methodName。
+ *
+ * 记录方法调用链的信息，tt -t classFullName methodName，如果记录中的值 IS-EXP = true，则说明这次调用出现异常。可再使用 tt -i
+ * 对应的INDEX，查看调用记录的详细信息。
+ * 重新发起调用，使用指定记录，使用 -p 重新调用（tt -i 对应的INDEX -p）。
  */
 public class ArthasDemo {
 
